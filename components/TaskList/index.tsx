@@ -1,18 +1,13 @@
 import React, { useCallback, useState } from "react";
-import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
-import TaskItem from "./TaskItem";
+import { Alert, FlatList, Text, View } from "react-native";
 
-interface TaskListProps {}
+import TaskItem from "../TaskItem";
 
-const TaskList: React.FC<TaskListProps> = () => {
-  const [task, setTask] = useState<TaskI[]>([
-    { key: 1, task: "Comprar pão" },
-    { key: 2, task: "Estudar React native" },
-    { key: 3, task: "Ir na academia hoje" },
-    { key: 4, task: "Comprar chocolate" },
-    { key: 5, task: "Assistir o 1 video do sujeito" },
-  ]);
+interface TaskListProps {
+  tasks: TaskI[];
+}
 
+const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
   const handleDelete = useCallback((key: number) => {
     // const newTasks = task.filter((item) => item.key !== key);
     // setTask(newTasks);
@@ -25,9 +20,9 @@ const TaskList: React.FC<TaskListProps> = () => {
 
   return (
     <View>
-      {task.length ? (
+      {tasks.length ? (
         <FlatList
-          data={task}
+          data={tasks}
           keyExtractor={(item) => String(item.key)}
           renderItem={({ item }) => (
             <TaskItem
@@ -45,5 +40,3 @@ const TaskList: React.FC<TaskListProps> = () => {
 };
 
 export default TaskList;
-
-const styles = StyleSheet.create({});
