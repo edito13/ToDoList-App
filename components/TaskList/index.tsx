@@ -1,39 +1,46 @@
-import React, { useCallback, useState } from "react";
-import { Alert, FlatList, Text, View } from "react-native";
+import React, { useCallback } from "react";
 
+import { useAtom } from "jotai";
+import { Alert, FlatList, Text, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import { TaskAtom } from "@/atom";
 import TaskItem from "../TaskItem";
 
-interface TaskListProps {
-  tasks: TaskI[];
-}
+interface TaskListProps {}
 
-const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
-  const handleDelete = useCallback((key: number) => {
-    // const newTasks = task.filter((item) => item.key !== key);
-    // setTask(newTasks);
-    Alert.alert("Deletado");
-  }, []);
+const TaskList: React.FC<TaskListProps> = () => {
+  const [Tasks, setTasks] = useAtom(TaskAtom);
 
-  const handleEdit = useCallback((key: number) => {
-    Alert.alert("Editado");
-  }, []);
+  const handleDelete = useCallback(
+    async (key: number) => {
+      const newTasks = Tasks.filter((item) => item.key !== key);
+
+      try {
+        setTasks(newTasks);
+        await AsyncStorage.setItem("tasks", JSON.stringify(newTasks));
+        Alert.alert("Deletada com sucesso");
+      } catch (error) {
+        console.log("Erro ao salvar a tarefa: ", error);
+      }
+    },
+    [Tasks, setTasks]
+  );
 
   return (
     <View>
-      {tasks.length ? (
+      {Tasks.length ? (
         <FlatList
-          data={tasks}
+          data={Tasks}
           keyExtractor={(item) => String(item.key)}
-          renderItem={({ item }) => (
-            <TaskItem
-              item={item}
-              handleEdit={handleEdit}
-              handleDelete={handleDelete}
-            />
+          renderItem={({ item, index }) => (
+            <TaskItem item={item} index={index} handleDelete={handleDelete} />
           )}
         />
       ) : (
-        <Text>Nenhuma tarefa foi cadastrada ainda...</Text>
+        <Text className="text-white text-base mt-5 text-center">
+          Nenhuma tarefa foi cadastrada ainda...
+        </Text>
       )}
     </View>
   );
