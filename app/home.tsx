@@ -1,28 +1,61 @@
-import React, { useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaView, StatusBar, Text, TouchableOpacity } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
 
+import { useAtom } from "jotai";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  StatusBar,
+  Text,
+  View,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import { TaskAtom } from "@/atom";
+
+import ModalAdd from "@/components/ModalAdd";
 import TaskList from "@/components/TaskList";
+import AddButton from "@/components/AddButton";
 
 const Home = () => {
-  const [tasks, setTasks] = useState<TaskI[]>([
-    { key: 1, task: "Comprar pão" },
-    { key: 2, task: "Estudar React native" },
-    { key: 3, task: "Ir na academia hoje" },
-    { key: 4, task: "Comprar chocolate" },
-    { key: 5, task: "Assistir o 1 video do sujeito" },
-  ]);
+  const [tasks, setTasks] = useAtom(TaskAtom);
+  const [isOpen, setIsOpen] = useState(false);
+  const [IsLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadTasks = async () => {
+      try {
+        const storedTasks = await AsyncStorage.getItem("tasks");
+        if (storedTasks) {
+          const data = JSON.parse(storedTasks);
+          setTasks(data);
+        }
+      } catch (error) {
+        console.log("Erro ao carregar tarefas:", error);
+      } finally {
+        setTimeout(() => setIsLoading(false), 1000);
+      }
+    };
+
+    loadTasks();
+  }, []);
+
+  const handleClose = useCallback(() => setIsOpen(false), []);
 
   return (
     <SafeAreaView className="h-full bg-secondary">
       <StatusBar barStyle={"light-content"} />
-      <Text className="text-white text-center text-xl mt-5">
-        Minhas Tarefas
-      </Text>
-      <TaskList tasks={tasks} />
-      <TouchableOpacity className="absolute right-8 bottom-12 w-14 h-14 bg-primary rounded-full justify-center items-center">
-        <Ionicons name="add" size={30} color="#fff" />
-      </TouchableOpacity>
+      <View className="flex-row justify-center items-center gap-2 mt-5">
+        <Ionicons color="#8b57f6" name="checkbox-outline" size={25} />
+        <Text className="text-white text-center text-2xl">Minhas Tarefas</Text>
+      </View>
+      {IsLoading ? (
+        <ActivityIndicator className="mt-5" color="#8b57f6" />
+      ) : (
+        <TaskList />
+      )}
+      <ModalAdd visible={isOpen} onClose={handleClose} />
+      <AddButton onPress={() => setIsOpen(true)} delay={100 * tasks.length} />
     </SafeAreaView>
   );
 };
